@@ -1,6 +1,3 @@
-
-var mazeLength = 6.0;
-var mazeWidth = 6.0;
 //1 is no wall
 //0 is wall
 //-1 is out of bounds
@@ -9,13 +6,17 @@ function MazeUnit() {
 	this.east = 1;
 	this.south = 1;
 	this.north = 1;
+	// I have the following in case I want to have some code later which walks through the north, west, east, and south corridors
 	// this.combined = [this.north, this.west, this.south, this.east];
 }
 
 
-var visualizeMaze = function(maze) {
-	mazeLength = maze.length;
-	mazeWidth = maze[0].length;
+
+
+
+function visualizeMaze(maze) {
+	var mazeLength = maze.length;
+	var mazeWidth = maze[0].length;
 
 	for (var i = 0; i < mazeLength; i++) {
 		var mazeLine1 = "";
@@ -73,9 +74,14 @@ function recursiveDivision(maze) {
 	mazeLength = maze.length;
 	mazeWidth = maze[0].length;
 
+	//Base case
 	if (mazeLength == 1 || mazeWidth == 1) 
 		return;
 
+
+
+
+	//Generating walls
 	numVerticalWalls = mazeWidth - 1;
 	numHorizWalls = mazeLength - 1;
 
@@ -94,6 +100,9 @@ function recursiveDivision(maze) {
 	}
 
 
+
+
+	//Generating Entrance
 	var chosenEntrance1 = Math.floor(Math.random() * Math.floor(chosenWallHoriz + 1));
 	var chosenEntrance2 = Math.floor(Math.random() * Math.floor(mazeLength - chosenWallHoriz - 1)) + chosenWallHoriz + 1;
 
@@ -124,16 +133,15 @@ function recursiveDivision(maze) {
 	}
 
 
+
+
+	//Generate submazes
 	var sectionNW = [];
 	var sectionNE = [];
 	var sectionSW = [];
 	var sectionSE = [];
 
-	var listMaze = [sectionNW, sectionNE, sectionSW, sectionSE, ];
-
-	
-
-
+	var listSubMaze = [sectionNW, sectionNE, sectionSW, sectionSE, ];
 
 	for (var i = 0; i < mazeLength; i++) {
 		var listMazeRow = [ [], [], [], [], ];
@@ -143,26 +151,16 @@ function recursiveDivision(maze) {
 				idxSubMaze += 1;
 			if (i > chosenWallHoriz)
 				idxSubMaze += 2;
-			// console.log("i = " + i);
-			// console.log("j = " + j);
-			console.log(idxSubMaze);
 			listMazeRow[idxSubMaze].push(maze[i][j]);
 		}
-		console.log("new row");
 		for (var k = 0; k < 4; k++)
 			if (listMazeRow[k].length != 0)
-				listMaze[k].push(listMazeRow[k]);
+				listSubMaze[k].push(listMazeRow[k]);
 	}
 
-	// console.log(listMaze[0]);
-
-	for (var i = 0; i < 4; i++) {
-		console.log("submaze " + i);
-		// visualizeMaze(listMaze[i]);
-		recursiveDivision(listMaze[i]);
-	}
-
-
+	//Recursion on the submazes
+	for (var i = 0; i < 4; i++) 
+		recursiveDivision(listSubMaze[i]);
 
 }
 
@@ -170,8 +168,9 @@ function recursiveDivision(maze) {
 
 
 
-console.log("init");
-var maze = initializeMazeNoWalls(mazeLength, mazeWidth);
-recursiveDivision(maze);
-console.log("did i make it");
-visualizeMaze(maze);
+// console.log("init");
+// var mazeLength = 10.0;
+// var mazeWidth = 10.0;
+// var maze = initializeMazeNoWalls(mazeLength, mazeWidth);
+// recursiveDivision(maze);
+// visualizeMaze(maze);

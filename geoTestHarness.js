@@ -82,25 +82,17 @@ function configureTexture( image, num_cube) {
     gl.texImage2D( gl.TEXTURE_2D, 0, gl.RGB, 
     gl.RGB, gl.UNSIGNED_BYTE, image );
     
-    //Using different texture mapping options for 
-    //the different cubes
-    /////////////////////////
-    /////////////////////////
-    // gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
-    //     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
-    //     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-    //     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
 
     // var ext = gl.getExtension("MOZ_EXT_texture_filter_anisotropic");
     // console.log(ext);
-        gl.generateMipmap( gl.TEXTURE_2D );
+    gl.generateMipmap( gl.TEXTURE_2D );
     // gl.texParameterf(gl.TEXTURE_2D, ext.TEXTURE_MAX_ANISOTROPY_EXT, 4);
 
 
-        gl.texParameteri( gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR );
-        gl.texParameteri( gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR );
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.REPEAT);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.REPEAT);
+    gl.texParameteri( gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR );
+    gl.texParameteri( gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR );
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.REPEAT);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.REPEAT);
 
     gl.uniform1i(gl.getUniformLocation(program, "texture"), 0);
     return texture;
@@ -109,11 +101,17 @@ function configureTexture( image, num_cube) {
 
 
 
-
+var numWalls = 0;
+var wallWorldCoords = [];
 
 window.onload = function init() {
 
-
+    console.log("init");
+    var mazeLength = 10.0;
+    var mazeWidth = 10.0;
+    var maze = initializeMazeNoWalls(mazeLength, mazeWidth);
+    recursiveDivision(maze);
+    visualizeMaze(maze);
 
     //Initialization of program
     //////////////
@@ -154,11 +152,42 @@ window.onload = function init() {
 
     gl.uniformMatrix4fv(projectionMatrixLoc, false, flatten(projectionMatrix) );
 
-
     desu = configureTexture(document.getElementById("texFloor"));
     gl.bindTexture( gl.TEXTURE_2D, desu );
 
     geometrySetup(gl, program);
+
+    
+    
+    for (var i = 0; i < mazeLength; i++) {
+      for (var j = 0; j < mazeWidth; j++) {
+        var translateMatrix = translate( j, 0, i );
+        var tempMatrix;
+        if(maze[i][j].north != 1) {
+          numWalls++;
+          wallWorldCoords.push(translateMatrix);
+        }
+        if(maze[i][j].west != 1) {
+          tempMatrix = mult(translateMatrix, rotate(90, 0, 1, 0));
+          tempMatrix = mult(translate(0.0, 0.0, 1.0), tempMatrix);
+          numWalls++;
+          wallWorldCoords.push(tempMatrix);
+        }
+        if(maze[i][j].south != 1) {
+          tempMatrix = mult(translateMatrix, rotate(180, 0, 1, 0));
+          tempMatrix = mult(translate(1, 0, 1), tempMatrix);   
+          numWalls++;
+          wallWorldCoords.push(tempMatrix);
+        }
+        if(maze[i][j].east != 1) {
+          tempMatrix = mult(translateMatrix, rotate(270, 0, 1, 0));
+          tempMatrix = mult(translate(1, 0, 0), tempMatrix);
+          numWalls++;
+          wallWorldCoords.push(tempMatrix);
+        }
+
+      }
+    }
 
     render();
     
@@ -172,9 +201,13 @@ window.onload = function init() {
     
     gl.clear( gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
-    modelViewMatrix = mult(viewMatrix, translate(initCoords[0], initCoords[1], initCoords[2]));
-    gl.uniformMatrix4fv(modelViewMatrixLoc, false, flatten(modelViewMatrix) );
 
+    
+    for ( var i = 0; i < numWalls; i++) {
+      modelViewMatrix = mult(viewMatrix, wallWorldCoords[i]);
+      gl.uniformMatrix4fv(modelViewMatrixLoc, false, flatten(modelViewMatrix) );
+      gl.drawArrays( gl.TRIANGLES, 0, 6 );
+    }
     geometryDraw(gl);
 
   }
@@ -199,35 +232,31 @@ function scale( x, y, z )
 //Keypress handler
 /////////////////////
 /////////////////////
-// document.onkeypress = function (event) {
-//     // console.log(event.key);
-//     switch(event.key) {
-//         case "i":
-//             viewMatrix = mult(translate(0.0, 0.0, 0.05), viewMatrix);
-//             break;
-//         case "o":
-//             viewMatrix = mult(translate(0.0, 0.0, -0.05), viewMatrix);
-//             break;
-//         case "r":
-//             if (rotation_cube[0][0] == 0.0) {
-//                 rotation_cube[0][0] = 1.0/3.0;
-//                 rotation_cube[1][0] = 1.0/6.0;
-//             }
-//             else {
-//                 rotation_cube[0][0] = 0.0;
-//                 rotation_cube[1][0] = 0.0;
-//             }
-//             break;
-//         case "t":
-//             rotationActive = !rotationActive;
-//             break;
-//         case "s":
-//             scrollActive = !scrollActive;
-//             break;
-//         default:
-//             break;
-//     }
-// }
+document.onkeypress = function (event) {
+    // console.log(event.key);
+    switch(event.key) {
+        case "w":
+            viewMatrix = mult(translate(0.0, 0.0, 0.05), viewMatrix);
+            break;
+        case "s":
+            viewMatrix = mult(translate(0.0, 0.0, -0.05), viewMatrix);
+            break;
+        case "a":
+            viewMatrix = mult(translate(0.05, 0.0, 0.0), viewMatrix);
+            break;
+        case "d":
+            viewMatrix = mult(translate(-0.05, 0.0, 0.0), viewMatrix);
+            break;
+        case "k":
+            viewMatrix = mult(rotate(1.0, 0, 1, 0), viewMatrix);
+            break;
+        case "j":
+            viewMatrix = mult(rotate(-1.0, 0, 1, 0), viewMatrix);
+            break;
+        default:
+            break;
+    }
+}
 
 
 

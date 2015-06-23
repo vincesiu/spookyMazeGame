@@ -8,7 +8,7 @@
 /////////////////////
 /////////////////////
 
-var wallSize = 2.0;
+var wallSize = 1.0;
 
 var wallCoordsBuffer;
 var wallCoordsVPointer;
@@ -38,8 +38,7 @@ var wallTexCoords = [
 //////////////////
 //////////////////
 var geometryDraw = function(gl) {
-	gl.clear( gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-	gl.drawArrays( gl.TRIANGLES, 0, 6 );
+	
 }
 
 //Called once in the init function
