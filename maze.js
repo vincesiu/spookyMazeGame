@@ -1,6 +1,6 @@
 
-var mazeLength = 4.0;
-var mazeWidth = 3.0;
+var mazeLength = 6.0;
+var mazeWidth = 6.0;
 //1 is no wall
 //0 is wall
 //-1 is out of bounds
@@ -14,6 +14,9 @@ function MazeUnit() {
 
 
 var visualizeMaze = function(maze) {
+	mazeLength = maze.length;
+	mazeWidth = maze[0].length;
+
 	for (var i = 0; i < mazeLength; i++) {
 		var mazeLine1 = "";
 		var mazeLine2 = "";
@@ -64,40 +67,111 @@ function initializeMazeNoWalls(mazeLength, mazeWidth) {
 
 	return maze;
 }
+
+
 function recursiveDivision(maze) {
 	mazeLength = maze.length;
 	mazeWidth = maze[0].length;
 
+	if (mazeLength == 1 || mazeWidth == 1) 
+		return;
+
 	numVerticalWalls = mazeWidth - 1;
 	numHorizWalls = mazeLength - 1;
 
-	var chosenWall = Math.floor(Math.random() * numVerticalWalls);
-	var chosenEntrance = Math.floor(Math.random() * mazeLength);
-
-	console.log(chosenWall);
-	console.log(chosenEntrance);
-	// console.log(mazeLength);
-	// console.log(mazeWidth);
+	var chosenWallVert = Math.floor(Math.random() * numVerticalWalls);
 
 	for (var i = 0; i < mazeLength; i++) {
-		maze[i][chosenWall].east = 0;
-		maze[i][chosenWall + 1].west = 0;
+		maze[i][chosenWallVert].east = 0;
+		maze[i][chosenWallVert + 1].west = 0;
 	}
 
-	// maze[chosenEntrance][chosenWall].east = 1;
-	// maze[chosenEntrance][chosenWall + 1].west = 1;
+	var chosenWallHoriz= Math.floor(Math.random() * numHorizWalls);
 
-	var thing1 = maze[chosenEntrance][chosenWall];
-	var thing2 = maze[chosenEntrance][chosenWall + 1];
+	for (var i = 0; i < mazeWidth; i++) {
+		maze[chosenWallHoriz][i].south = 0;
+		maze[chosenWallHoriz + 1][i].north = 0;
+	}
 
-	thing1.east = 1;
-	thing2.west = 1;
 
-	return maze;
+	var chosenEntrance1 = Math.floor(Math.random() * Math.floor(chosenWallHoriz + 1));
+	var chosenEntrance2 = Math.floor(Math.random() * Math.floor(mazeLength - chosenWallHoriz - 1)) + chosenWallHoriz + 1;
+
+	var chosenEntrance3 = Math.floor(Math.random() * Math.floor(chosenWallVert + 1));
+	var chosenEntrance4 = Math.floor(Math.random() * Math.floor(mazeWidth - chosenWallVert - 1)) + chosenWallVert + 1;
+
+
+	var removedEntrance = Math.floor(Math.random() * 4);
+
+	if (removedEntrance != 0) {
+		maze[chosenEntrance1][chosenWallVert].east = 1;
+		maze[chosenEntrance1][chosenWallVert + 1].west = 1;
+	}
+
+	if (removedEntrance != 1) {
+		maze[chosenEntrance2][chosenWallVert].east = 1;
+		maze[chosenEntrance2][chosenWallVert + 1].west = 1;
+	}
+
+	if (removedEntrance != 2) {
+		maze[chosenWallHoriz][chosenEntrance3].south = 1;
+		maze[chosenWallHoriz + 1][chosenEntrance3].north = 1;
+	}
+
+	if (removedEntrance != 3) {
+		maze[chosenWallHoriz][chosenEntrance4].south = 1;
+		maze[chosenWallHoriz + 1][chosenEntrance4].north = 1;
+	}
+
+
+	var sectionNW = [];
+	var sectionNE = [];
+	var sectionSW = [];
+	var sectionSE = [];
+
+	var listMaze = [sectionNW, sectionNE, sectionSW, sectionSE, ];
+
+	
+
+
+
+	for (var i = 0; i < mazeLength; i++) {
+		var listMazeRow = [ [], [], [], [], ];
+		for (var j = 0; j < mazeWidth; j++) {
+			var idxSubMaze = 0;
+			if (j > chosenWallVert)
+				idxSubMaze += 1;
+			if (i > chosenWallHoriz)
+				idxSubMaze += 2;
+			// console.log("i = " + i);
+			// console.log("j = " + j);
+			console.log(idxSubMaze);
+			listMazeRow[idxSubMaze].push(maze[i][j]);
+		}
+		console.log("new row");
+		for (var k = 0; k < 4; k++)
+			if (listMazeRow[k].length != 0)
+				listMaze[k].push(listMazeRow[k]);
+	}
+
+	// console.log(listMaze[0]);
+
+	for (var i = 0; i < 4; i++) {
+		console.log("submaze " + i);
+		// visualizeMaze(listMaze[i]);
+		recursiveDivision(listMaze[i]);
+	}
+
+
+
 }
+
+
+
 
 
 console.log("init");
 var maze = initializeMazeNoWalls(mazeLength, mazeWidth);
 recursiveDivision(maze);
+console.log("did i make it");
 visualizeMaze(maze);
